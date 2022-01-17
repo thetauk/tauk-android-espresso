@@ -1,0 +1,1 @@
+adb shell am instrument -w -m -e listener com.tauk.android.espresso.ExecutionListener -e debug false -e apiToken 9Gg4v-Jd4fhN0eQom1HGHATzmcQ -e projectId 9vPSDF1vS io.aj.sample.test/androidx.test.runner.AndroidJUnitRunner
