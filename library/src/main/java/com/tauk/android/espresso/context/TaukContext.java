@@ -4,11 +4,10 @@ package com.tauk.android.espresso.context;
 import com.squareup.moshi.Json;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
+import com.tauk.android.espresso.Util;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,14 +20,16 @@ import okhttp3.Response;
 
 public class TaukContext {
 //        static final String UPLOAD_API_URL = "https://www.tauk.com/api/v1/session/upload";
-        static final String UPLOAD_API_URL = "http://localhost:5000/api/v1/session/upload";
-//    static final String UPLOAD_API_URL = "https://requestinspector.com/inspect/01fgtf646m76k9q9tp1z9yyqt0";
+//        static final String UPLOAD_API_URL = "http://10.0.2.2:5000/api/v1/session/upload";
+//    static final String UPLOAD_API_URL = "https://requestinspector.com/p/01fsns8dtycaxsfn1e62w071qr";
 
+    private transient String apiUrl;
     private transient String apiToken;
     private transient String projectId;
 
     @Json(name = "test_status")
-    private TestStatus testStatus;
+    private String testStatus = TestStatus.PASSED.value;
+
     @Json(name = "test_name")
     private String testName;
     @Json(name = "test_filename")
@@ -47,54 +48,18 @@ public class TaukContext {
     @Json(name = "elapsed_time_ms")
     private long elapsedTime;
 
-    public TaukContext(String apiToken, String projectId) {
+    public TaukContext(String apiUrl, String apiToken, String projectId) {
+
+        this.apiUrl = apiUrl;
         this.apiToken = apiToken;
         this.projectId = projectId;
-    }
-
-    public String toJson() {
-        Moshi moshi = new Moshi.Builder().build();
-        JsonAdapter<TaukContext> jsonAdapter = moshi.adapter(TaukContext.class);
-        return jsonAdapter.toJson(this);
-    }
-
-    public void longDebug(String str) {
-        if (str.length() > 4000) {
-            android.util.Log.d("TaukListener", "test: Post Body : " + str.substring(0, 4000));
-            longDebug(str.substring(4000));
-        } else
-            android.util.Log.d("TaukListener", "test: Post Body : " + str);
-    }
-
-    public void upload() throws IOException {
-        android.util.Log.d("TaukListener", "test: Posting to : [" + UPLOAD_API_URL + "]");
-
-
-//        longDebug(toJson());
-//        screenshot = screenshot.substring(0, 100);
-//        view = view.substring(0, 100);
-
-        URL url = new URL(UPLOAD_API_URL);
-        OkHttpClient client = new OkHttpClient();
-        MediaType JSON = MediaType.get("application/json; charset=utf-8");
-        RequestBody body = RequestBody.create(toJson(), JSON);
-        android.util.Log.d("TaukListener", "test: Body length : [" + body.contentLength() + "]");
-        Request request = new Request.Builder()
-                .url(url)
-                .header("api_token", apiToken)
-                .header("project_id", projectId)
-                .post(body)
-                .build();
-        try (Response response = client.newCall(request).execute()) {
-            android.util.Log.d("TaukListener", "test: Response Body: [" + response.body().string() + "]");
-        }
     }
 
     public String getTestFileName() {
         return testFileName;
     }
 
-    public void setTestStatus(TestStatus testStatus) {
+    public void setTestStatus(String testStatus) {
         this.testStatus = testStatus;
     }
 
@@ -140,5 +105,37 @@ public class TaukContext {
 
     public void setLog(List<Log> log) {
         this.log = log;
+    }
+
+    public String toJson() {
+        Moshi moshi = new Moshi.Builder().build();
+        JsonAdapter<TaukContext> jsonAdapter = moshi.adapter(TaukContext.class);
+        return jsonAdapter.toJson(this);
+    }
+
+    public void print() {
+        Util.logToConsole(toJson());
+    }
+
+    public void upload() throws IOException {
+        try {
+            Util.logToConsole("upload: Posting to : [" + apiUrl + "]");
+            URL url = new URL(apiUrl);
+            OkHttpClient client = new OkHttpClient();
+            MediaType JSON = MediaType.get("application/json; charset=utf-8");
+            RequestBody body = RequestBody.create(toJson(), JSON);
+            Util.logToConsole("upload: Body length : [" + body.contentLength() + "]");
+            Request request = new Request.Builder()
+                    .url(url)
+                    .header("api_token", apiToken)
+                    .header("project_id", projectId)
+                    .post(body)
+                    .build();
+            try (Response response = client.newCall(request).execute()) {
+                Util.logToConsole("upload: Response Body: [" + response.body().string() + "]");
+            }
+        } catch (Exception e) {
+            Util.logToConsole("upload ERROR: " + e.getMessage());
+        }
     }
 }

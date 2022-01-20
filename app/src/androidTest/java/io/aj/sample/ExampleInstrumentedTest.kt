@@ -1,5 +1,7 @@
 package io.aj.sample
 
+import androidx.annotation.UiThread
+import androidx.test.espresso.Espresso
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
@@ -13,8 +15,6 @@ import org.junit.runner.RunWith
 
 import org.junit.Assert.*
 import org.junit.Rule
-import com.tauk.android.espresso.ExecutionListener;
-import com.tauk.android.espresso.AnnotationTestPrinter;
 
 /**
  * Instrumented test, which will execute on an Android device.
@@ -33,15 +33,12 @@ class ExampleInstrumentedTest {
 //        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
 //        assertEquals("io.aj.sample", appContext.packageName)
 
-        onView(withText("Hello World!")).check(matches(isDisplayed()))
+        onView(withText("Hello Worlds!")).check(matches(isDisplayed()))
     }
 
     @Test
     fun verifyButton() {
-        // Context of the app under test.
-//        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-//        assertEquals("io.aj.sample", appContext.packageName)
-
+        Thread.sleep(15000)
         onView(withText("Hello World!")).check(matches(isDisplayed()))
     }
 }
