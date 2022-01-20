@@ -64,10 +64,10 @@ public class ExecutionListener extends RunListener {
             super.testRunStarted(description);
 
             // TODO: Validate api token and project
-            String taukApiUrl = InstrumentationRegistry.getArguments().getString("taukApiUrl");
-            String projectId = InstrumentationRegistry.getArguments().getString("projectId");
-            String apiToken = InstrumentationRegistry.getArguments().getString("apiToken");
-            taukContext = new TaukContext(apiToken, projectId, taukApiUrl);
+            String apiUrl = InstrumentationRegistry.getArguments().getString("taukApiUrl");
+            String projectId = InstrumentationRegistry.getArguments().getString("taukProjectId");
+            String apiToken = InstrumentationRegistry.getArguments().getString("taukApiToken");
+            taukContext = new TaukContext(apiUrl, apiToken, projectId);
 
             taukContext.addTag("releaseVersion", Build.VERSION.RELEASE);
             taukContext.addTag("sdkVersion", Build.VERSION.SDK_INT);
@@ -97,7 +97,8 @@ public class ExecutionListener extends RunListener {
      */
     public void testStarted(Description description) throws java.lang.Exception {
         try {
-            Util.logToConsole("### testStarted: ----------------------------");
+            Util.logToConsole("### testStarted[" + description.getDisplayName() + "]: ----------------------------");
+            taukContext.newTest();
             testStartTime = System.currentTimeMillis();
             taukContext.setTestFileName(description.getClassName());
             taukContext.setTestName(description.getMethodName());
@@ -111,10 +112,10 @@ public class ExecutionListener extends RunListener {
      */
     public void testFinished(Description description) throws Exception {
         try {
-            Util.logToConsole("### testFinished: ----------------------------");
+            Util.logToConsole("### testFinished[" + description.getDisplayName() + "]: ----------------------------");
             testFinishedTime = System.currentTimeMillis();
             taukContext.setElapsedTime(testFinishedTime - testStartTime);
-            taukContext.print();
+//            taukContext.print();
             taukContext.upload();
         } catch (Exception e) {
             Util.logToConsole("testFinished ERROR: " + e.getMessage());
@@ -126,7 +127,7 @@ public class ExecutionListener extends RunListener {
      */
     public void testFailure(Failure failure) {
         try {
-            Util.logToConsole("### testFailure: ----------------------------" + failure.getTestHeader());
+            Util.logToConsole("### testFailure[" + failure.getDescription() + "]: ----------------------------");
             taukContext.setTestStatus(TestStatus.FAILED.value);
 
             // Fetch the rootView from NoMatchingViewException.

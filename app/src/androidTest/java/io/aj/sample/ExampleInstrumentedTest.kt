@@ -38,7 +38,6 @@ class ExampleInstrumentedTest {
 
     @Test
     fun verifyButton() {
-        Thread.sleep(15000)
         onView(withText("Hello World!")).check(matches(isDisplayed()))
     }
 }
