@@ -1,18 +1,19 @@
-package com.tauk.android.espresso;
+package com.tauk.android.espresso.listeners;
 
 
 import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
 
-import android.graphics.Bitmap;
-import android.util.Base64;
 import android.os.Build;
 import android.view.View;
 
+import androidx.test.espresso.Espresso;
 import androidx.test.espresso.NoMatchingViewException;
 import androidx.test.espresso.util.HumanReadables;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.uiautomator.UiDevice;
 
+import com.tauk.android.espresso.TaukFailureHandler;
+import com.tauk.android.espresso.Util;
 import com.tauk.android.espresso.context.TaukContext;
 import com.tauk.android.espresso.context.TestStatus;
 
@@ -38,6 +39,7 @@ public class ExecutionListener extends RunListener {
     private UiDevice device = UiDevice.getInstance(getInstrumentation());
     private long testStartTime;
     private long testFinishedTime;
+    private TaukFailureHandler failureHandler;
 
     public ExecutionListener() {
         super();
@@ -68,6 +70,9 @@ public class ExecutionListener extends RunListener {
             String projectId = InstrumentationRegistry.getArguments().getString("taukProjectId");
             String apiToken = InstrumentationRegistry.getArguments().getString("taukApiToken");
             taukContext = new TaukContext(apiUrl, apiToken, projectId);
+
+            failureHandler = new TaukFailureHandler(getInstrumentation(), taukContext);
+            Espresso.setFailureHandler(failureHandler);
 
             taukContext.addTag("releaseVersion", Build.VERSION.RELEASE);
             taukContext.addTag("sdkVersion", Build.VERSION.SDK_INT);
@@ -130,18 +135,8 @@ public class ExecutionListener extends RunListener {
             Util.logToConsole("### testFailure[" + failure.getDescription() + "]: ----------------------------");
             taukContext.setTestStatus(TestStatus.FAILED.value);
 
-            // Fetch the rootView from NoMatchingViewException.
-            // Since its a private variable we have to set it to accessible
-            try {
-                taukContext.setViewHierarchy(getViewHierarchyFromException(failure.getException()));
-            } catch (Exception e) {
-                Util.logToConsole("Failed to extract view hierarchy from exception");
-            }
-
             parseAndSetError(failure);
-            taukContext.setScreenshot(getBase64Screenshot());
             taukContext.setLog(getLogs());
-
         } catch (Exception e) {
             Util.logToConsole("testFailure ERROR: " + e.getMessage());
         }
@@ -167,13 +162,6 @@ public class ExecutionListener extends RunListener {
         Util.logToConsole("### testIgnored: ----------------------------");
     }
 
-
-    private String getBase64Screenshot() {
-        Bitmap screenshot = getInstrumentation().getUiAutomation().takeScreenshot();
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        screenshot.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
-        return Base64.encodeToString(byteArrayOutputStream.toByteArray(), Base64.DEFAULT);
-    }
 
     private String getViewHierarchyFromWindow() throws IOException {
         OutputStream out = new ByteArrayOutputStream();

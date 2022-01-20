@@ -30,8 +30,8 @@ class ExampleInstrumentedTest {
     @Test
     fun verifyHomeScreen() {
         // Context of the app under test.
-//        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-//        assertEquals("io.aj.sample", appContext.packageName)
+        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
+        assertEquals("io.aj.sample", appContext.packageName)
 
         onView(withText("Hello Worlds!")).check(matches(isDisplayed()))
     }

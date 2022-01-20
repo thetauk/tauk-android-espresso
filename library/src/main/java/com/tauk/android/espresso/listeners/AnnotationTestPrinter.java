@@ -1,4 +1,4 @@
-package com.tauk.android.espresso;
+package com.tauk.android.espresso.listeners;
 
 import androidx.test.internal.runner.listener.InstrumentationRunListener;
 

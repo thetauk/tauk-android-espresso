@@ -138,4 +138,14 @@ public class TaukContext {
             Util.logToConsole("upload ERROR: " + e.getMessage());
         }
     }
+
+    public void newTest() {
+        testFileName = "";
+        tags = new HashMap<>();
+        log = null;
+        screenshot = "";
+        view = "";
+        error = new HashMap<>();
+        elapsedTime = 0;
+    }
 }
