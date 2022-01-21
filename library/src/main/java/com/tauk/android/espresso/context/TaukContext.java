@@ -19,10 +19,6 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class TaukContext {
-//        static final String UPLOAD_API_URL = "https://www.tauk.com/api/v1/session/upload";
-//        static final String UPLOAD_API_URL = "http://10.0.2.2:5000/api/v1/session/upload";
-//    static final String UPLOAD_API_URL = "https://requestinspector.com/p/01fsns8dtycaxsfn1e62w071qr";
-
     private transient String apiUrl;
     private transient String apiToken;
     private transient String projectId;

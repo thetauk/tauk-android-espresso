@@ -2,6 +2,7 @@ package com.tauk.android.espresso.listeners;
 
 
 import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
+import static androidx.test.platform.app.InstrumentationRegistry.getArguments;
 
 import android.os.Build;
 import android.view.View;
@@ -9,7 +10,6 @@ import android.view.View;
 import androidx.test.espresso.Espresso;
 import androidx.test.espresso.NoMatchingViewException;
 import androidx.test.espresso.util.HumanReadables;
-import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.uiautomator.UiDevice;
 
 import com.tauk.android.espresso.TaukFailureHandler;
@@ -30,20 +30,16 @@ import java.io.StringReader;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
 public class ExecutionListener extends RunListener {
+    private final String DEFAULT_API_URL = "https://www.tauk.com/api/v1/session/upload";
     private TaukContext taukContext;
-    private UiDevice device = UiDevice.getInstance(getInstrumentation());
+    private final UiDevice device = UiDevice.getInstance(getInstrumentation());
     private long testStartTime;
-    private long testFinishedTime;
-    private TaukFailureHandler failureHandler;
-
-    public ExecutionListener() {
-        super();
-    }
 
     @Override
     public void testSuiteStarted(Description description) throws Exception {
@@ -60,18 +56,18 @@ public class ExecutionListener extends RunListener {
     /**
      * Called before any tests have been run.
      */
-    public void testRunStarted(Description description) throws Exception {
+    public void testRunStarted(Description description) {
         try {
             Util.logToConsole("### testRunStarted: ----------------------------");
             super.testRunStarted(description);
 
             // TODO: Validate api token and project
-            String apiUrl = InstrumentationRegistry.getArguments().getString("taukApiUrl");
-            String projectId = InstrumentationRegistry.getArguments().getString("taukProjectId");
-            String apiToken = InstrumentationRegistry.getArguments().getString("taukApiToken");
+            String apiUrl = getArguments().getString("taukApiUrl", DEFAULT_API_URL);
+            String projectId = getArguments().getString("taukProjectId");
+            String apiToken = getArguments().getString("taukApiToken");
             taukContext = new TaukContext(apiUrl, apiToken, projectId);
 
-            failureHandler = new TaukFailureHandler(getInstrumentation(), taukContext);
+            TaukFailureHandler failureHandler = new TaukFailureHandler(getInstrumentation(), taukContext);
             Espresso.setFailureHandler(failureHandler);
 
             taukContext.addTag("releaseVersion", Build.VERSION.RELEASE);
@@ -89,7 +85,7 @@ public class ExecutionListener extends RunListener {
     /**
      * Called when all tests have finished
      */
-    public void testRunFinished(Result result) throws java.lang.Exception {
+    public void testRunFinished(Result result) {
         try {
             Util.logToConsole("### testRunFinished: ----------------------------");
         } catch (Exception e) {
@@ -100,11 +96,11 @@ public class ExecutionListener extends RunListener {
     /**
      * Called when an atomic test is about to be started.
      */
-    public void testStarted(Description description) throws java.lang.Exception {
+    public void testStarted(Description description) {
         try {
+            testStartTime = System.currentTimeMillis();
             Util.logToConsole("### testStarted[" + description.getDisplayName() + "]: ----------------------------");
             taukContext.newTest();
-            testStartTime = System.currentTimeMillis();
             taukContext.setTestFileName(description.getClassName());
             taukContext.setTestName(description.getMethodName());
         } catch (Exception e) {
@@ -115,12 +111,10 @@ public class ExecutionListener extends RunListener {
     /**
      * Called when an atomic test has finished, whether the test succeeds or fails.
      */
-    public void testFinished(Description description) throws Exception {
+    public void testFinished(Description description) {
         try {
             Util.logToConsole("### testFinished[" + description.getDisplayName() + "]: ----------------------------");
-            testFinishedTime = System.currentTimeMillis();
-            taukContext.setElapsedTime(testFinishedTime - testStartTime);
-//            taukContext.print();
+            taukContext.setElapsedTime(System.currentTimeMillis() - testStartTime);
             taukContext.upload();
         } catch (Exception e) {
             Util.logToConsole("testFinished ERROR: " + e.getMessage());
@@ -158,16 +152,14 @@ public class ExecutionListener extends RunListener {
      * Called when a test will not be run, generally because a test method is annotated with
      * org.junit.Ignore.
      */
-    public void testIgnored(Description description) throws IOException {
+    public void testIgnored(Description description) {
         Util.logToConsole("### testIgnored: ----------------------------");
     }
-
 
     private String getViewHierarchyFromWindow() throws IOException {
         OutputStream out = new ByteArrayOutputStream();
         device.dumpWindowHierarchy(out);
-        String hierarchy = out.toString();
-        return hierarchy;
+        return out.toString();
     }
 
     private String getViewHierarchyFromException(Throwable t) throws NoSuchFieldException, IllegalAccessException {
@@ -175,7 +167,8 @@ public class ExecutionListener extends RunListener {
         Field f = ((NoMatchingViewException) t).getClass().getDeclaredField("rootView");
         f.setAccessible(true);
         View rootView = (View) f.get(t);
-        return HumanReadables.getViewHierarchyErrorMessage(rootView, null, "", null);
+        return HumanReadables.getViewHierarchyErrorMessage(
+                Objects.requireNonNull(rootView), null, "", null);
     }
 
     private void parseAndSetError(Failure failure) {
@@ -209,7 +202,7 @@ public class ExecutionListener extends RunListener {
         ArrayList<com.tauk.android.espresso.context.Log> logs = new ArrayList<>();
         String stringLogs = device.executeShellCommand("logcat -v epoch brief -t 15");
         BufferedReader bufReader = new BufferedReader(new StringReader(stringLogs));
-        String line = null;
+        String line;
         while ((line = bufReader.readLine()) != null) {
             logs.add(parseLogLine(line));
         }
@@ -222,7 +215,13 @@ public class ExecutionListener extends RunListener {
         Matcher matcher = pattern.matcher(line);
         if (matcher.find()) {
             if (matcher.groupCount() == 5) {
-                log.setTimestamp(Double.valueOf(Double.parseDouble(matcher.group(1))).longValue());
+                log.setTimestamp(Double.valueOf(
+                        Double.parseDouble(
+                                Objects.requireNonNull(
+                                        matcher.group(1)
+                                )
+                        )
+                ).longValue());
                 log.setLevel(matcher.group(4));
                 log.setType("Logcat");
                 log.setMessage(matcher.group(5));
