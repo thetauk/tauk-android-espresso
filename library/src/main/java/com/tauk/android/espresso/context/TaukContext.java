@@ -1,9 +1,40 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2022 Tauk, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package com.tauk.android.espresso.context;
 
+
+import static androidx.test.platform.app.InstrumentationRegistry.getArguments;
+
+import android.app.Instrumentation;
+import android.os.Build;
+import android.provider.Settings;
 
 import com.squareup.moshi.Json;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
+import com.tauk.android.espresso.TaukException;
 import com.tauk.android.espresso.Util;
 
 import java.io.IOException;
@@ -19,17 +50,17 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class TaukContext {
-    private transient String apiUrl;
+    private transient String apiUrl = "https://www.tauk.com/api/v1/session/upload";
     private transient String apiToken;
     private transient String projectId;
 
     @Json(name = "test_status")
-    private String testStatus = TestStatus.PASSED.value;
-
+    private String testStatus;
     @Json(name = "test_name")
     private String testName;
     @Json(name = "test_filename")
     private String testFileName;
+
     private Map<String, Object> tags = new HashMap<>();
     private List<Log> log;
     private String screenshot;
@@ -44,12 +75,55 @@ public class TaukContext {
     @Json(name = "elapsed_time_ms")
     private long elapsedTime;
 
-    public TaukContext(String apiUrl, String apiToken, String projectId) {
+    /**
+     * Initialize TaukContext
+     * Also build tags and collect needed device information
+     *
+     * @param apiUrl
+     * @param apiToken
+     * @param projectId
+     * @throws TaukException
+     */
+    public TaukContext(String apiUrl, String apiToken, String projectId) throws TaukException {
+        if (projectId == null || projectId.isEmpty()) {
+            throw new TaukException("Invalid Tauk Project ID");
+        }
 
-        this.apiUrl = apiUrl;
+        if (apiToken == null || apiToken.isEmpty()) {
+            throw new TaukException("Invalid Tauk API Token.");
+        }
+
+        if (apiUrl != null && !apiUrl.isEmpty()) {
+            this.apiUrl = apiUrl;
+        }
         this.apiToken = apiToken;
         this.projectId = projectId;
+
+        buildTags();
+        this.setPlatformVersion(Build.VERSION.RELEASE);
     }
+
+
+    /**
+     * Build TaukContext from the provided command line arguments
+     *
+     * @throws TaukException
+     */
+    public TaukContext() throws TaukException {
+        this(
+                getArguments().getString("taukApiUrl"),
+                getArguments().getString("taukProjectId"),
+                getArguments().getString("taukApiToken")
+        );
+    }
+
+    private void buildTags() {
+        addTag("sdkVersion", Build.VERSION.SDK_INT);
+        addTag("manufacturer", Build.MANUFACTURER);
+        addTag("model", Build.MODEL);
+    }
+
+
 
     public String getTestFileName() {
         return testFileName;
@@ -67,10 +141,6 @@ public class TaukContext {
         this.testFileName = testFileName;
     }
 
-    public void setPlatform(String platform) {
-        this.platform = platform;
-    }
-
     public void setPlatformVersion(String platformVersion) {
         this.platformVersion = platformVersion;
     }
@@ -79,8 +149,16 @@ public class TaukContext {
         this.elapsedTime = elapsedTime;
     }
 
+    public boolean hasScreenshot() {
+        return this.screenshot != null && this.screenshot.length() > 0;
+    }
+
     public void setScreenshot(String screenshot) {
         this.screenshot = screenshot;
+    }
+
+    public boolean hasViewHierarchy() {
+        return this.view != null && this.view.length() > 0;
     }
 
     public void setViewHierarchy(String view) {
@@ -114,30 +192,25 @@ public class TaukContext {
     }
 
     public void upload() throws IOException {
-        try {
-            Util.logToConsole("upload: Posting to : [" + apiUrl + "]");
-            URL url = new URL(apiUrl);
-            OkHttpClient client = new OkHttpClient();
-            MediaType JSON = MediaType.get("application/json; charset=utf-8");
-            RequestBody body = RequestBody.create(toJson(), JSON);
-            Util.logToConsole("upload: Body length : [" + body.contentLength() + "]");
-            Request request = new Request.Builder()
-                    .url(url)
-                    .header("api_token", apiToken)
-                    .header("project_id", projectId)
-                    .post(body)
-                    .build();
-            try (Response response = client.newCall(request).execute()) {
-                Util.logToConsole("upload: Response Body: [" + response.body().string() + "]");
-            }
-        } catch (Exception e) {
-            Util.logToConsole("upload ERROR: " + e.getMessage());
-        }
+        Util.logToConsole("upload: Posting to : [" + apiUrl + "]");
+        URL url = new URL(apiUrl);
+        OkHttpClient client = new OkHttpClient();
+        MediaType JSON = MediaType.get("application/json; charset=utf-8");
+        RequestBody body = RequestBody.create(toJson(), JSON);
+        Util.logToConsole("upload: Body length : [" + body.contentLength() + "]");
+        Request request = new Request.Builder()
+                .url(url)
+                .header("api_token", apiToken)
+                .header("project_id", projectId)
+                .post(body)
+                .build();
+        Response response = client.newCall(request).execute();
+        Util.logToConsole("upload: Response Body: [" + response.body().string() + "]");
     }
 
-    public void newTest() {
-        testFileName = "";
-        tags = new HashMap<>();
+    public void newTest(String testFileName, String testName) {
+        this.setTestFileName(testFileName);
+        this.setTestName(testName);
         log = null;
         screenshot = "";
         view = "";

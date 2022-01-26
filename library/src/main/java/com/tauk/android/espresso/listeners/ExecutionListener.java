@@ -12,7 +12,7 @@ import androidx.test.espresso.NoMatchingViewException;
 import androidx.test.espresso.util.HumanReadables;
 import androidx.test.uiautomator.UiDevice;
 
-import com.tauk.android.espresso.TaukFailureHandler;
+import com.tauk.android.espresso.EspressoFailureHandler;
 import com.tauk.android.espresso.Util;
 import com.tauk.android.espresso.context.TaukContext;
 import com.tauk.android.espresso.context.TestStatus;
@@ -22,17 +22,11 @@ import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.StringReader;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 public class ExecutionListener extends RunListener {
@@ -67,7 +61,7 @@ public class ExecutionListener extends RunListener {
             String apiToken = getArguments().getString("taukApiToken");
             taukContext = new TaukContext(apiUrl, apiToken, projectId);
 
-            TaukFailureHandler failureHandler = new TaukFailureHandler(getInstrumentation(), taukContext);
+            EspressoFailureHandler failureHandler = new EspressoFailureHandler(getInstrumentation(), taukContext);
             Espresso.setFailureHandler(failureHandler);
 
             taukContext.addTag("releaseVersion", Build.VERSION.RELEASE);
@@ -100,9 +94,7 @@ public class ExecutionListener extends RunListener {
         try {
             testStartTime = System.currentTimeMillis();
             Util.logToConsole("### testStarted[" + description.getDisplayName() + "]: ----------------------------");
-            taukContext.newTest();
-            taukContext.setTestFileName(description.getClassName());
-            taukContext.setTestName(description.getMethodName());
+            taukContext.newTest(description.getClassName(), description.getMethodName());
         } catch (Exception e) {
             Util.logToConsole("testStarted ERROR: " + e.getMessage());
         }
@@ -113,6 +105,13 @@ public class ExecutionListener extends RunListener {
      */
     public void testFinished(Description description) {
         try {
+            if (!taukContext.hasScreenshot()) {
+                taukContext.setScreenshot(Util.getBase64Bitmap(getInstrumentation().getUiAutomation().takeScreenshot()));
+            }
+            if (!taukContext.hasViewHierarchy()) {
+                taukContext.setViewHierarchy(getViewHierarchyFromWindow());
+            }
+
             Util.logToConsole("### testFinished[" + description.getDisplayName() + "]: ----------------------------");
             taukContext.setElapsedTime(System.currentTimeMillis() - testStartTime);
             taukContext.upload();
@@ -130,7 +129,7 @@ public class ExecutionListener extends RunListener {
             taukContext.setTestStatus(TestStatus.FAILED.value);
 
             parseAndSetError(failure);
-            taukContext.setLog(getLogs());
+            taukContext.setLog(Util.getLogs());
         } catch (Exception e) {
             Util.logToConsole("testFailure ERROR: " + e.getMessage());
         }
@@ -155,6 +154,11 @@ public class ExecutionListener extends RunListener {
     public void testIgnored(Description description) {
         Util.logToConsole("### testIgnored: ----------------------------");
     }
+
+    //#############################################################################################
+    //######### Private Methods ###################################################################
+    //#############################################################################################
+
 
     private String getViewHierarchyFromWindow() throws IOException {
         OutputStream out = new ByteArrayOutputStream();
@@ -197,40 +201,5 @@ public class ExecutionListener extends RunListener {
         );
     }
 
-
-    private List<com.tauk.android.espresso.context.Log> getLogs() throws IOException {
-        ArrayList<com.tauk.android.espresso.context.Log> logs = new ArrayList<>();
-        String stringLogs = device.executeShellCommand("logcat -v epoch brief -t 15");
-        BufferedReader bufReader = new BufferedReader(new StringReader(stringLogs));
-        String line;
-        while ((line = bufReader.readLine()) != null) {
-            logs.add(parseLogLine(line));
-        }
-        return logs;
-    }
-
-    private com.tauk.android.espresso.context.Log parseLogLine(String line) {
-        com.tauk.android.espresso.context.Log log = new com.tauk.android.espresso.context.Log();
-        Pattern pattern = Pattern.compile("\\s([0-9]+\\.[0-9]+)\\s+(\\d*)\\s+(\\d*)\\s+([DWEVI])\\s+(.+)");
-        Matcher matcher = pattern.matcher(line);
-        if (matcher.find()) {
-            if (matcher.groupCount() == 5) {
-                log.setTimestamp(Double.valueOf(
-                        Double.parseDouble(
-                                Objects.requireNonNull(
-                                        matcher.group(1)
-                                )
-                        )
-                ).longValue());
-                log.setLevel(matcher.group(4));
-                log.setType("Logcat");
-                log.setMessage(matcher.group(5));
-            } else {
-                Util.logToConsole("testFailure: Not considering log line: " + line);
-
-            }
-        }
-        return log;
-    }
 
 }

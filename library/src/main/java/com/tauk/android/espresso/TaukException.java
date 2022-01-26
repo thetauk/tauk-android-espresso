@@ -22,16 +22,13 @@
  * SOFTWARE.
  */
 
-package com.tauk.android.espresso.context;
+package com.tauk.android.espresso;
 
-public enum TestStatus {
-    PASSED("passed"),
-    FAILED("failed"),
-    EXCLUDED("excluded"); // TODO: change to undetermined
-
-    public final String value;
-
-    private TestStatus(String val) {
-        this.value = val;
+/**
+ * Used for identifying an exception as coming from the Tauk framework.
+ */
+public class TaukException extends Exception {
+    public TaukException(String message) {
+        super(message);
     }
 }
