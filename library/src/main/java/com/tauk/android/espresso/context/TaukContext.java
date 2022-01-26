@@ -27,9 +27,7 @@ package com.tauk.android.espresso.context;
 
 import static androidx.test.platform.app.InstrumentationRegistry.getArguments;
 
-import android.app.Instrumentation;
 import android.os.Build;
-import android.provider.Settings;
 
 import com.squareup.moshi.Json;
 import com.squareup.moshi.JsonAdapter;
@@ -42,6 +40,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -51,8 +50,8 @@ import okhttp3.Response;
 
 public class TaukContext {
     private transient String apiUrl = "https://www.tauk.com/api/v1/session/upload";
-    private transient String apiToken;
-    private transient String projectId;
+    private final transient String apiToken;
+    private final transient String projectId;
 
     @Json(name = "test_status")
     private String testStatus;
@@ -79,10 +78,10 @@ public class TaukContext {
      * Initialize TaukContext
      * Also build tags and collect needed device information
      *
-     * @param apiUrl
-     * @param apiToken
-     * @param projectId
-     * @throws TaukException
+     * @param apiUrl    Tauk API URL
+     * @param apiToken  Tauk API Token
+     * @param projectId Tauk Project ID
+     * @throws TaukException Tauk Exception
      */
     public TaukContext(String apiUrl, String apiToken, String projectId) throws TaukException {
         if (projectId == null || projectId.isEmpty()) {
@@ -98,6 +97,8 @@ public class TaukContext {
         }
         this.apiToken = apiToken;
         this.projectId = projectId;
+
+        // TODO: Whether to validate API token and Project ID with the server
 
         buildTags();
         this.setPlatformVersion(Build.VERSION.RELEASE);
@@ -122,7 +123,6 @@ public class TaukContext {
         addTag("manufacturer", Build.MANUFACTURER);
         addTag("model", Build.MODEL);
     }
-
 
 
     public String getTestFileName() {
@@ -205,7 +205,8 @@ public class TaukContext {
                 .post(body)
                 .build();
         Response response = client.newCall(request).execute();
-        Util.logToConsole("upload: Response Body: [" + response.body().string() + "]");
+        String responseBody = response.body() == null ? "null" : response.body().string();
+        Util.logToConsole("upload: Response Body: [" + responseBody + "]");
     }
 
     public void newTest(String testFileName, String testName) {

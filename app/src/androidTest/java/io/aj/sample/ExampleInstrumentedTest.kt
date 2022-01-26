@@ -1,7 +1,5 @@
 package io.aj.sample
 
-import androidx.annotation.UiThread
-import androidx.test.espresso.Espresso
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
@@ -9,6 +7,8 @@ import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.runner.AndroidJUnitRunner
+import com.tauk.android.espresso.rules.TaukWatcher
 
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -27,17 +27,22 @@ class ExampleInstrumentedTest {
     @get:Rule
     val activityRule = ActivityScenarioRule(MainActivity::class.java)
 
+    @get:Rule
+    val watcher = TaukWatcher()
+
     @Test
     fun verifyHomeScreen() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
+        (InstrumentationRegistry.getInstrumentation() as AndroidJUnitRunner).startPerformanceSnapshot()
         assertEquals("io.aj.sample", appContext.packageName)
 
-        onView(withText("Hello Worlds!")).check(matches(isDisplayed()))
+        onView(withText("Hello World!")).check(matches(isDisplayed()))
     }
 
     @Test
-    fun verifyButton() {
-        onView(withText("Hello World!")).check(matches(isDisplayed()))
+    fun failingTest() {
+        onView(withText("Not Hello World!")).check(matches(isDisplayed()))
+
     }
 }

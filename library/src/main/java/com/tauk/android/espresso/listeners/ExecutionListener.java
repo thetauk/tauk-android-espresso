@@ -55,7 +55,6 @@ public class ExecutionListener extends RunListener {
             Util.logToConsole("### testRunStarted: ----------------------------");
             super.testRunStarted(description);
 
-            // TODO: Validate api token and project
             String apiUrl = getArguments().getString("taukApiUrl", DEFAULT_API_URL);
             String projectId = getArguments().getString("taukProjectId");
             String apiToken = getArguments().getString("taukApiToken");

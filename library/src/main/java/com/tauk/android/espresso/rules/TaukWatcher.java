@@ -38,6 +38,7 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
 import java.io.IOException;
+import java.util.Objects;
 
 
 public class TaukWatcher extends TestWatcher {
@@ -50,7 +51,7 @@ public class TaukWatcher extends TestWatcher {
      * When invoking tests from adb you can pass arguments using '-e' parameter.
      * Ex: -e taukApiToken YOUR_API_TOKEN
      *
-     * @throws TaukException
+     * @throws TaukException Tauk Exception
      */
     public TaukWatcher() throws TaukException {
         this.taukContext = new TaukContext();
@@ -59,10 +60,10 @@ public class TaukWatcher extends TestWatcher {
     /**
      * Instantiate TaukWatcher with custom API URL, API Token, and Project ID.
      *
-     * @param apiUrl
-     * @param apiToken
-     * @param projectId
-     * @throws TaukException
+     * @param apiUrl    Tauk API URL
+     * @param apiToken  Tauk API token
+     * @param projectId Tauk Project ID
+     * @throws TaukException Tauk Exception
      */
     public TaukWatcher(String apiUrl, String apiToken, String projectId) throws TaukException {
         if (apiToken == null || apiToken.isEmpty() || projectId == null || projectId.isEmpty()) {
@@ -75,8 +76,6 @@ public class TaukWatcher extends TestWatcher {
 
     /**
      * Invoked when a test is about to start
-     *
-     * @param description
      */
     @Override
     protected void starting(Description description) {
@@ -88,8 +87,6 @@ public class TaukWatcher extends TestWatcher {
 
     /**
      * Invoked when a test method finishes (whether passing or failing)
-     *
-     * @param description
      */
     @Override
     protected void finished(Description description) {
@@ -114,8 +111,6 @@ public class TaukWatcher extends TestWatcher {
 
     /**
      * Invoked when a test succeeds
-     *
-     * @param description
      */
     @Override
     protected void succeeded(Description description) {
@@ -126,9 +121,6 @@ public class TaukWatcher extends TestWatcher {
 
     /**
      * Invoked when a test fails
-     *
-     * @param e
-     * @param description
      */
     @Override
     protected void failed(Throwable e, Description description) {
@@ -152,9 +144,6 @@ public class TaukWatcher extends TestWatcher {
 
     /**
      * Invoked when a test is skipped due to a failed assumption.
-     *
-     * @param e
-     * @param description
      */
     @Override
     protected void skipped(AssumptionViolatedException e, Description description) {
@@ -176,6 +165,11 @@ public class TaukWatcher extends TestWatcher {
         Util.logExceptionToConsole(ex);
     }
 
+    /**
+     * Construct Tauk Error from Throwable
+     *
+     * @param e Throwable
+     */
     private void buildError(Throwable e) {
         String errorMessage = "";
         long lineNumber = -1;
@@ -192,7 +186,9 @@ public class TaukWatcher extends TestWatcher {
         }
 
         if (e.getClass() == NoMatchingViewException.class) {
-            errorMessage = e.getMessage().substring(0, e.getMessage().indexOf("View Hierarchy:")).trim();
+            errorMessage = Objects.requireNonNull(e.getMessage())
+                    .substring(0, e.getMessage().indexOf("View Hierarchy:"))
+                    .trim();
         }
 
         taukContext.setError(
