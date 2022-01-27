@@ -1,8 +1,8 @@
 package com.tauk.android.espresso.listeners;
 
 
-import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
 import static androidx.test.platform.app.InstrumentationRegistry.getArguments;
+import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
 
 import android.os.Build;
 import android.view.View;
@@ -31,8 +31,8 @@ import java.util.Objects;
 
 public class ExecutionListener extends RunListener {
     private final String DEFAULT_API_URL = "https://www.tauk.com/api/v1/session/upload";
-    private TaukContext taukContext;
     private final UiDevice device = UiDevice.getInstance(getInstrumentation());
+    private TaukContext taukContext;
     private long testStartTime;
 
     @Override

@@ -40,7 +40,6 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -49,10 +48,9 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class TaukContext {
-    private transient String apiUrl = "https://www.tauk.com/api/v1/session/upload";
     private final transient String apiToken;
     private final transient String projectId;
-
+    private transient String apiUrl = "https://www.tauk.com/api/v1/session/upload";
     @Json(name = "test_status")
     private String testStatus;
     @Json(name = "test_name")
@@ -60,15 +58,15 @@ public class TaukContext {
     @Json(name = "test_filename")
     private String testFileName;
 
-    private Map<String, Object> tags = new HashMap<>();
+    private final Map<String, Object> tags = new HashMap<>();
     private List<Log> log;
     private String screenshot;
     private String view;
     private Map<String, Object> error = new HashMap<>();
     @Json(name = "automation_type")
-    private String automationType = "Espresso";
-    private String language = "Java/Kotlin";
-    private String platform = "Android";
+    private final String automationType = "Espresso";
+    private final String language = "Java/Kotlin";
+    private final String platform = "Android";
     @Json(name = "platform_version")
     private String platformVersion;
     @Json(name = "elapsed_time_ms")
@@ -129,16 +127,16 @@ public class TaukContext {
         return testFileName;
     }
 
+    public void setTestFileName(String testFileName) {
+        this.testFileName = testFileName;
+    }
+
     public void setTestStatus(String testStatus) {
         this.testStatus = testStatus;
     }
 
     public void setTestName(String testName) {
         this.testName = testName;
-    }
-
-    public void setTestFileName(String testFileName) {
-        this.testFileName = testFileName;
     }
 
     public void setPlatformVersion(String platformVersion) {
