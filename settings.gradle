@@ -7,4 +7,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "TaukEspresso"
 include ':app'
-include ':library'
+include ':taukespressolibrary'
