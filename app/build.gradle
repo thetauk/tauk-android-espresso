@@ -45,6 +45,6 @@ dependencies {
     androidTestImplementation 'androidx.test:runner:1.4.0'
     androidTestImplementation 'androidx.test:rules:1.4.0'
     androidTestImplementation 'androidx.test:runner:1.4.0'
-    androidTestImplementation project(path: ':taukespressolibrary')
+    androidTestImplementation project(path: ':tauk-espresso-library')
 
 }

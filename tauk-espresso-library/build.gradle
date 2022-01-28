@@ -3,6 +3,14 @@ plugins {
     id 'kotlin-android'
 }
 
+ext {
+    PUBLISH_GROUP_ID = 'com.tauk'
+    PUBLISH_VERSION = '0.1.0'
+    PUBLISH_ARTIFACT_ID = 'tauk-espresso-library'
+}
+
+apply from: "${rootProject.projectDir}/scripts/publish-module.gradle"
+
 android {
     compileSdk 31
 
