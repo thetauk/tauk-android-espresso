@@ -75,6 +75,22 @@ public class TaukWatcher extends TestWatcher {
     }
 
     /**
+     * Instantiate TaukWatcher with custom API Token, and Project ID.
+     *
+     * @param apiToken  Tauk API token
+     * @param projectId Tauk Project ID
+     * @throws TaukException Tauk Exception
+     */
+    public TaukWatcher(String apiToken, String projectId) throws TaukException {
+        if (apiToken == null || apiToken.isEmpty() || projectId == null || projectId.isEmpty()) {
+            this.taukContext = new TaukContext();
+        } else {
+            this.taukContext = new TaukContext(apiToken, projectId);
+        }
+
+    }
+
+    /**
      * Invoked when a test is about to start
      */
     @Override

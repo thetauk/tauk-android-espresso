@@ -83,11 +83,11 @@ public class TaukContext {
      */
     public TaukContext(String apiUrl, String apiToken, String projectId) throws TaukException {
         if (projectId == null || projectId.isEmpty()) {
-            throw new TaukException("Invalid Tauk Project ID");
+            throw new TaukException("Tauk Project ID was not specified or invalid");
         }
 
         if (apiToken == null || apiToken.isEmpty()) {
-            throw new TaukException("Invalid Tauk API Token.");
+            throw new TaukException("Tauk API Token was not specified or invalid");
         }
 
         if (apiUrl != null && !apiUrl.isEmpty()) {
@@ -100,6 +100,17 @@ public class TaukContext {
 
         buildTags();
         this.setPlatformVersion(Build.VERSION.RELEASE);
+    }
+
+    /**
+     * Initialize TaukContext with production API URL
+     *
+     * @param apiToken
+     * @param projectId
+     * @throws TaukException
+     */
+    public TaukContext(String apiToken, String projectId) throws TaukException {
+        this(null, apiToken, projectId);
     }
 
 

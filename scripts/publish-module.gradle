@@ -24,6 +24,7 @@
 
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
+apply plugin: 'org.jetbrains.dokka'
 
 task androidSourcesJar(type: Jar) {
     archiveClassifier.set('sources')
@@ -38,13 +39,20 @@ task androidSourcesJar(type: Jar) {
     }
 }
 
+task javadocJar(type: Jar, dependsOn: dokkaJavadoc) {
+    archiveClassifier.set('javadoc')
+    from dokkaJavadoc.outputDirectory
+}
+
 artifacts {
     archives androidSourcesJar
+    archives javadocJar
 }
 
 group = PUBLISH_GROUP_ID
 version = PUBLISH_VERSION
 
+// Provide all the metadata for the library you’re releasing
 afterEvaluate {
     publishing {
         publications {
@@ -62,7 +70,7 @@ afterEvaluate {
                 }
 
                 artifact androidSourcesJar
-                // artifact javadocJar
+                artifact javadocJar
 
                 // Mostly self-explanatory metadata
                 pom {
@@ -94,6 +102,10 @@ afterEvaluate {
     }
 }
 
+/*
+ * This piece of code grabs signing related values from the root project,
+ * and then tells the signing plugin to sign the artifacts you’ve defined above as a publication.
+ */
 signing {
     useInMemoryPgpKeys(
             rootProject.ext["signing.keyId"],
