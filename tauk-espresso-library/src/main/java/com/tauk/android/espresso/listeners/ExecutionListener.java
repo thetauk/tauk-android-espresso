@@ -58,7 +58,7 @@ public class ExecutionListener extends RunListener {
             String apiUrl = getArguments().getString("taukApiUrl", DEFAULT_API_URL);
             String projectId = getArguments().getString("taukProjectId");
             String apiToken = getArguments().getString("taukApiToken");
-            taukContext = new TaukContext(apiUrl, apiToken, projectId);
+            taukContext = new TaukContext(apiToken, projectId);
 
             EspressoFailureHandler failureHandler = new EspressoFailureHandler(getInstrumentation(), taukContext);
             Espresso.setFailureHandler(failureHandler);

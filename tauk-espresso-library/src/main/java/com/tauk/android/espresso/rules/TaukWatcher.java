@@ -58,23 +58,6 @@ public class TaukWatcher extends TestWatcher {
     }
 
     /**
-     * Instantiate TaukWatcher with custom API URL, API Token, and Project ID.
-     *
-     * @param apiUrl    Tauk API URL
-     * @param apiToken  Tauk API token
-     * @param projectId Tauk Project ID
-     * @throws TaukException Tauk Exception
-     */
-    public TaukWatcher(String apiUrl, String apiToken, String projectId) throws TaukException {
-        if (apiToken == null || apiToken.isEmpty() || projectId == null || projectId.isEmpty()) {
-            this.taukContext = new TaukContext();
-        } else {
-            this.taukContext = new TaukContext(apiUrl, apiToken, projectId);
-        }
-
-    }
-
-    /**
      * Instantiate TaukWatcher with custom API Token, and Project ID.
      *
      * @param apiToken  Tauk API token
@@ -118,6 +101,18 @@ public class TaukWatcher extends TestWatcher {
         }
 
         try {
+            taukContext.setViewHierarchy(Util.getViewHierarchyFromWindow());
+        } catch (Exception ex) {
+            logException("Failed to capture view hierarchy: " + ex.getMessage(), ex);
+        }
+
+        try {
+            taukContext.setLog(Util.getLogs());
+        } catch (IOException ex) {
+            logException("Failed to fetch device logs: " + ex.getMessage(), ex);
+        }
+
+        try {
             taukContext.upload();
         } catch (Exception ex) {
             logException("Failed to upload results: " + ex.getMessage(), ex);
@@ -142,18 +137,8 @@ public class TaukWatcher extends TestWatcher {
     protected void failed(Throwable e, Description description) {
         log("[" + description.getDisplayName() + "] failed");
         taukContext.setTestStatus(TestStatus.FAILED.value);
-        try {
-            taukContext.setViewHierarchy(Util.getViewHierarchyFromWindow());
-        } catch (Exception ex) {
-            logException("Failed to capture view hierarchy: " + ex.getMessage(), ex);
-        }
 
         buildError(e);
-        try {
-            taukContext.setLog(Util.getLogs());
-        } catch (IOException ex) {
-            logException("Failed to fetch device logs: " + ex.getMessage(), ex);
-        }
 
         super.failed(e, description);
     }

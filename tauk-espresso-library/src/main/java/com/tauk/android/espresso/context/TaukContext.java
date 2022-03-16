@@ -29,6 +29,8 @@ import static androidx.test.platform.app.InstrumentationRegistry.getArguments;
 
 import android.os.Build;
 
+import androidx.test.platform.app.InstrumentationRegistry;
+
 import com.squareup.moshi.Json;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
@@ -46,6 +48,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okio.Buffer;
 
 public class TaukContext {
     private final transient String apiToken;
@@ -59,7 +62,7 @@ public class TaukContext {
     private String testFileName;
 
     private final Map<String, Object> tags = new HashMap<>();
-    private List<Log> log;
+    private List<LogLine> logLine;
     private String screenshot;
     private String view;
     private Map<String, Object> error = new HashMap<>();
@@ -81,7 +84,7 @@ public class TaukContext {
      * @param projectId Tauk Project ID
      * @throws TaukException Tauk Exception
      */
-    public TaukContext(String apiUrl, String apiToken, String projectId) throws TaukException {
+    private TaukContext(String apiUrl, String apiToken, String projectId) throws TaukException {
         if (projectId == null || projectId.isEmpty()) {
             throw new TaukException("Tauk Project ID was not specified or invalid");
         }
@@ -90,6 +93,7 @@ public class TaukContext {
             throw new TaukException("Tauk API Token was not specified or invalid");
         }
 
+        // TODO: Load api URL from environment variable
         if (apiUrl != null && !apiUrl.isEmpty()) {
             this.apiUrl = apiUrl;
         }
@@ -122,8 +126,8 @@ public class TaukContext {
     public TaukContext() throws TaukException {
         this(
                 getArguments().getString("taukApiUrl"),
-                getArguments().getString("taukProjectId"),
-                getArguments().getString("taukApiToken")
+                getArguments().getString("taukApiToken"),
+                getArguments().getString("taukProjectId")
         );
     }
 
@@ -131,6 +135,9 @@ public class TaukContext {
         addTag("sdkVersion", Build.VERSION.SDK_INT);
         addTag("manufacturer", Build.MANUFACTURER);
         addTag("model", Build.MODEL);
+        addTag("platformName", this.platform);
+        addTag("automationType", this.automationType);
+        addTag("packageName", InstrumentationRegistry.getInstrumentation().getTargetContext().getPackageName());
     }
 
 
@@ -186,8 +193,8 @@ public class TaukContext {
         error.put("code_executed", codeExecuted);
     }
 
-    public void setLog(List<Log> log) {
-        this.log = log;
+    public void setLog(List<LogLine> logLine) {
+        this.logLine = logLine;
     }
 
     public String toJson() {
@@ -207,6 +214,13 @@ public class TaukContext {
         MediaType JSON = MediaType.get("application/json; charset=utf-8");
         RequestBody body = RequestBody.create(toJson(), JSON);
         Util.logToConsole("upload: Body length : [" + body.contentLength() + "]");
+
+
+        Buffer buffer = new Buffer();
+        body.writeTo(buffer);
+//        Util.logToConsole("upload: Body  : [" + buffer.readUtf8()+ "]");
+        Util.logToConsole("API_TOKEN: [" + apiToken + "] Project ID: [" + projectId + "]");
+
         Request request = new Request.Builder()
                 .url(url)
                 .header("api_token", apiToken)
@@ -221,7 +235,7 @@ public class TaukContext {
     public void newTest(String testFileName, String testName) {
         this.setTestFileName(testFileName);
         this.setTestName(testName);
-        log = null;
+        logLine = null;
         screenshot = "";
         view = "";
         error = new HashMap<>();

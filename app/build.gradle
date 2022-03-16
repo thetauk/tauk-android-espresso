@@ -16,6 +16,8 @@ android {
         // "pm clear" command after each test invocation. This command ensures
         // that the app's state is completely cleared between tests.
         testInstrumentationRunnerArguments clearPackageData: 'true'
+//        testInstrumentationRunnerArguments taukProjectId: 'q9OSPWkdQ'
+//        testInstrumentationRunnerArguments taukApiToken: 'BG2Ov-9ggzHM10RzCjIwfI8KLc8w '
     }
 
     buildTypes {
@@ -39,11 +41,13 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.4.1'
     implementation 'com.google.android.material:material:1.5.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
+    implementation 'com.squareup.okhttp3:okhttp:4.9.3'
+    implementation 'androidx.test.espresso:espresso-idling-resource:3.4.0'
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-idling-resource:3.4.0'
     androidTestImplementation 'androidx.test:runner:1.4.0'
     androidTestImplementation 'androidx.test:rules:1.4.0'
     androidTestImplementation project(path: ':tauk-espresso-library')
-
 }

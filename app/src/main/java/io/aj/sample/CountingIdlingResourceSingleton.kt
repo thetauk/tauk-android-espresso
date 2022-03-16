@@ -22,27 +22,23 @@
  * SOFTWARE.
  */
 
-package com.tauk.android.espresso.context;
+package io.aj.sample
 
-public class Log {
-    private long timestamp;
-    private String level;
-    private String type;
-    private String message;
+import androidx.test.espresso.idling.CountingIdlingResource
 
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
+object CountingIdlingResourceSingleton {
+
+    private const val RESOURCE = "GLOBAL"
+
+    @JvmField val countingIdlingResource = CountingIdlingResource(RESOURCE)
+
+    fun increment() {
+        countingIdlingResource.increment()
     }
 
-    public void setLevel(String level) {
-        this.level = level;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
+    fun decrement() {
+        if (!countingIdlingResource.isIdleNow) {
+            countingIdlingResource.decrement()
+        }
     }
 }

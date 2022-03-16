@@ -30,11 +30,12 @@ import android.app.Instrumentation;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Base64;
+import android.util.Log;
 
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.uiautomator.UiDevice;
 
-import com.tauk.android.espresso.context.Log;
+import com.tauk.android.espresso.context.LogLine;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -53,6 +54,7 @@ public class Util {
     private static final UiDevice device = UiDevice.getInstance(getInstrumentation());
 
     public static void logToConsole(String text) {
+
         Bundle bundle = new Bundle();
         bundle.putString(Instrumentation.REPORT_KEY_STREAMRESULT, "Tauk: " + text + "\n");
         InstrumentationRegistry.getInstrumentation().sendStatus(0, bundle);
@@ -81,38 +83,39 @@ public class Util {
         return out.toString();
     }
 
-    public static List<Log> getLogs() throws IOException {
-        ArrayList<Log> logs = new ArrayList<>();
+    public static List<LogLine> getLogs() throws IOException {
+        ArrayList<LogLine> logLines = new ArrayList<>();
         String stringLogs = device.executeShellCommand("logcat -v epoch brief -t 15");
         BufferedReader bufReader = new BufferedReader(new StringReader(stringLogs));
         String line;
         while ((line = bufReader.readLine()) != null) {
-            logs.add(parseLogLine(line));
+            logLines.add(parseLogLine(line));
         }
-        return logs;
+        return logLines;
     }
 
-    private static Log parseLogLine(String line) {
-        com.tauk.android.espresso.context.Log log = new com.tauk.android.espresso.context.Log();
+    private static LogLine parseLogLine(String line) {
+        Log.d("tauk", line);
+        LogLine logLine = new LogLine();
         Pattern pattern = Pattern.compile("\\s([0-9]+\\.[0-9]+)\\s+(\\d*)\\s+(\\d*)\\s+([DWEVI])\\s+(.+)");
         Matcher matcher = pattern.matcher(line);
         if (matcher.find()) {
             if (matcher.groupCount() == 5) {
-                log.setTimestamp(Double.valueOf(
+                logLine.setTimestamp(Double.valueOf(
                         Double.parseDouble(
                                 Objects.requireNonNull(
                                         matcher.group(1)
                                 )
                         )
                 ).longValue());
-                log.setLevel(matcher.group(4));
-                log.setType("Logcat");
-                log.setMessage(matcher.group(5));
+                logLine.setLevel(matcher.group(4));
+                logLine.setType("Logcat");
+                logLine.setMessage(matcher.group(5));
             } else {
                 Util.logToConsole("testFailure: Not considering log line: " + line);
 
             }
         }
-        return log;
+        return logLine;
     }
 }
