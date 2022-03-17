@@ -89,7 +89,10 @@ public class Util {
         BufferedReader bufReader = new BufferedReader(new StringReader(stringLogs));
         String line;
         while ((line = bufReader.readLine()) != null) {
-            logLines.add(parseLogLine(line));
+            LogLine logLine = parseLogLine(line);
+            if (logLine.getMessage() != null && logLine.getMessage().length() > 0 ) {
+                logLines.add(parseLogLine(line));
+            }
         }
         return logLines;
     }

@@ -30,6 +30,11 @@ public class LogLine {
     private String type;
     private String message;
 
+
+    public String getMessage() {
+        return message;
+    }
+
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
     }

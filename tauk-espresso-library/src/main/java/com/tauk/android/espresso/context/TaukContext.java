@@ -62,7 +62,7 @@ public class TaukContext {
     private String testFileName;
 
     private final Map<String, Object> tags = new HashMap<>();
-    private List<LogLine> logLine;
+    private List<LogLine> log;
     private String screenshot;
     private String view;
     private Map<String, Object> error = new HashMap<>();
@@ -194,7 +194,7 @@ public class TaukContext {
     }
 
     public void setLog(List<LogLine> logLine) {
-        this.logLine = logLine;
+        this.log = logLine;
     }
 
     public String toJson() {
@@ -235,7 +235,7 @@ public class TaukContext {
     public void newTest(String testFileName, String testName) {
         this.setTestFileName(testFileName);
         this.setTestName(testName);
-        logLine = null;
+        log = null;
         screenshot = "";
         view = "";
         error = new HashMap<>();

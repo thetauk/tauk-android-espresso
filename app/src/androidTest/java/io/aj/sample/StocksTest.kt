@@ -32,9 +32,6 @@ class StocksTest {
 
     @get:Rule
     val watcher = TaukWatcher()
-    /*
-    val watcher = TaukWatcher("BG2Ov-9ggzHM10RzCjIwfI8KLc8w", "q9OSPWkdQ")
-    */
 
     @Before
     fun setup() {
