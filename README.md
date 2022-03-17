@@ -23,7 +23,7 @@ Add the following rule to your test class
     val watcher = TaukWatcher(API_TOKEN, PROJECT_ID)
 ```
 
-# Invoking test via `adb`
+## Invoking test via `adb`
 API Token and Project ID can be specified as arguments while initializing `TaukWatcher()` or they can also be 
 specified as instrumentation arguments using    
 ``-e taukApiToken YOUR_TOKEN -e taukProjectId YOUR_PROJECT_ID``
@@ -33,7 +33,7 @@ Example:
     adb shell am instrument -m -w -e taukApiToken <API_TOKEN> -e taukProjectId <PROJECT_ID> <APP_PACKAGE>/androidx.test.runner.AndroidJUnitRunner
 ```
 
-# Invoking test via `Gradle`
+## Invoking test via `Gradle`
 You can also invoke the test from gradle using gradle `connectedAndroidTest` task
 
 Example:
@@ -53,5 +53,8 @@ Alternatively you can also provide the API Token and project ID in `build.gradle
 ```
 
 
-NOTE: In order to upload the results to Tauk make sure that the manifest contains the below permissions
-``<uses-permission android:name="android.permission.INTERNET" />``
+### NOTE: In order to upload the results to Tauk make sure that the manifest contains the below permissions
+
+```
+    <uses-permission android:name="android.permission.INTERNET" />
+```
